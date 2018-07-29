@@ -1,28 +1,26 @@
 {
     "general": {
         "steps": 6000,
-        "label_class": 10,
         "early_stop": false,
         "ealry_stop_loss": 0.005,
         "tensor_log": "saved_models/saved_model/logs/",
         "model_save_path": "saved_models/saved_model/"
     },
+    "data_spec": {
+        "img_size": 64,
+        "num_channels": 3,
+        "num_class": 10
+    },
     "models": {
         "choose_model": "conv",
         "conv": {
-            "l1_size": 16,
-            "l2_size": 36,
-            "filter_size": 5,
-            "fc_size": 128,
-            "learn_rate": 0.0005
+            "conv_neu_num": 64,
+            "fc_neu_num": 128,
+            "learn_rate": 0.0005,
+            "keep_prob": 0.5
         }
     },
     "processing": {
-        "data_spec": {
-            "img_size": 28,
-            "num_channels": 3,
-            "num_classes": 10
-        },
         "reader": {
             "batch_size": 1,
             "train_size": 10,

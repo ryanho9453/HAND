@@ -22,12 +22,14 @@ data_size (2062, 64, 64)
 # img = cv.rectangle(img,(400,0),(512,100),(255,255,255),-1)
 #
 # img = cv.cvtColor(img, cv.COLOR_RGB2GRAY)
-# img = cv.imread('/Users/ryanho/Documents/python/HAND/data/test_img.jpg')
-raw = np.load('/Users/ryanho/Documents/python/HAND/data/X.npy')
-raw = raw[0]
+img = cv.imread('/Users/ryanho/Documents/python/test_img/test_img.jpeg')
+# raw = np.load('/Users/ryanho/Documents/python/HAND/data/X.npy')
+# raw = raw[0]
 
-print(raw.shape)
+print(type(img))
 
-# cv.imshow('img', raw)
-# cv.waitKey(7000)
+print(img.dtype)
+
+cv.imshow('img', img)
+cv.waitKey(7000)
 

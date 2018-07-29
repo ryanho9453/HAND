@@ -21,6 +21,7 @@ tensorboard
 
 """
 
+
 def train(restore):
     config_path = os.path.join(os.path.dirname(__file__), 'config.json')
     with open(config_path, 'r') as f:
@@ -31,15 +32,14 @@ def train(restore):
 
     with tf.name_scope('data_in'):
         if config['models']['choose_model'] == 'conv':
-            """ /// why float32 ? change the shape ? """
+            img_size = config['data_spec']['img_size']
             data_in = tf.placeholder(
-                tf.float32, [None, None, None, 3], name='data_in')
+                tf.uint8, [None, img_size, img_size], name='data_in')
 
     with tf.name_scope('label_in'):
-        """ /// why float32 ? change the shape ? """
+        batch_size = config['processing']['reader']['batch_size']
         label_in = tf.placeholder(
-            tf.float32, [None, 4, config['general']['label_class']],
-            name='label_in')
+            tf.uint8, [batch_size], name='label_in')
 
     with tf.Session() as sess:
         model = model_picker.pick_model()
@@ -50,7 +50,6 @@ def train(restore):
         #
         # prepare train component 1. train_op 2. loss 3. logits
         #
-        """ /// logits? """
         if not restore:
             train_op, loss, logits = model.build(data_in, label_in)
             sess.run(tf.global_variables_initializer())
@@ -102,8 +101,6 @@ def train(restore):
                 print('loss = %s, step = %s (%s sec)'
                       % (train_loss, step, total_sec))
 
-                """ /// logits[0] labels[0] ? """
-                """ /// what is prediction ? """
                 print('logits[0]')
                 print(prediction[0])
                 print('labels[0]')
@@ -122,7 +119,6 @@ def train(restore):
         print('Save model at final step = %s, spend %fs' % (step, total_sec))
 
 
-""" /// argparse ? """
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='model runner')
     parser.add_argument('--restore', type=bool, default=True,
