@@ -4,8 +4,8 @@ from models.conv_model import ConvModel
 class ModelPicker:
     def __init__(self, config):
         self.config = config
-        self.model_name = config['choose_model']
-        self.model_param = config[self.model_name]
+        self.model_name = config['models']['choose_model']
+        self.model_param = config['models'][self.model_name]
 
     def pick_model(self):
         """

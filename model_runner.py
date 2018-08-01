@@ -8,8 +8,9 @@ import time
 import argparse
 
 """
-/// todo
-tensorboard
+/// tensorboard
+/// look at feature map in each layer
+
 
 """
 
@@ -27,19 +28,34 @@ def train(restore):
     with open(config_path, 'r') as f:
         config = json.load(f)
 
-    model_picker = ModelPicker(config['models'])
+    img_size = config['data_spec']['img_size']
+    num_channel = config['data_spec']['num_channel']
+    num_class = config['data_spec']['num_class']
+    batch_size = config['processing']['reader']['batch_size']
+
+    model_picker = ModelPicker(config)
     data_reader = DataReader(config['processing']['reader'])
 
     with tf.name_scope('data_in'):
         if config['models']['choose_model'] == 'conv':
-            img_size = config['data_spec']['img_size']
+            """
+            although opencv extract an int array, 
+            but tf.nn.conv2d accept only float input, so set float32 here
+            
+            data_in.shape = [batch_size, img_size, img_size, num_channel]
+            
+            """
             data_in = tf.placeholder(
-                tf.uint8, [None, img_size, img_size], name='data_in')
+                tf.float32, (None, img_size, img_size, num_channel), name='data_in')
 
     with tf.name_scope('label_in'):
-        batch_size = config['processing']['reader']['batch_size']
+        """
+        label.shape = (batch_size, num_class), 
+        so use softmax_cross_entropy      (use sparse_softmax_cross_entropy otherwise)
+        labels have to be float
+        """
         label_in = tf.placeholder(
-            tf.uint8, [batch_size], name='label_in')
+            tf.float32, [batch_size, num_class], name='label_in')
 
     with tf.Session() as sess:
         model = model_picker.pick_model()
@@ -121,7 +137,7 @@ def train(restore):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='model runner')
-    parser.add_argument('--restore', type=bool, default=True,
+    parser.add_argument('--restore', default=False, dest='restore', action='store_true',
                         help='Restore pre-trained model store in config')
     args = parser.parse_args()
     train(args.restore)

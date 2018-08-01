@@ -16,7 +16,7 @@ with open('/Users/ryanho/Documents/python/HAND/config.json', 'r') as f:
     config = json.load(f)
 reader_config = config['processing']['reader']
 
-data_reader = DataReader(reader_config, mode='train', process='threshold')
+data_reader = DataReader(reader_config)
 while data_reader.finish_all_data is False:
     img, label = data_reader.next_batch()
     cv.imshow('img', img[0])

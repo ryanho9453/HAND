@@ -11,59 +11,60 @@ data_size (2062, 64, 64)
 
 
 class DataReader:
-    def __init__(self, config, mode=None, process=None):
-        self.config = config
+    def __init__(self, reader_config):
+        self.config = reader_config
         self.index = 0
+
+        self.mode = reader_config['mode']
 
         self.exclude_folder = ['.DS_Store']
 
         self.finish_all_data = False
 
-        self.number_n_batch = 0
+        x, self.y = self.__load_data()
 
-        X, self.Y = self.__load_data(mode=mode)
+        self.data_size = len(x)
 
-        self.data_size = len(X)
-
-        self.X = self.__preprocess(X, process=process)
-
+        process = reader_config['process']
+        self.x = self.__preprocess(x, process=process)
 
     def next_batch(self):
+        """ /// need shuffle """
+
         start_idx = self.index
         end_idx = self.index + self.config['batch_size']
-        imgs = self.X[start_idx: end_idx]
-        labels = self.Y[start_idx: end_idx]
+        imgs = self.x[start_idx: end_idx]
+        labels = self.y[start_idx: end_idx]
 
         # complement
-        if len(imgs) < self.config['batch_size']:
+        if len(imgs) < self.config['batch_size'] and len(imgs) != 0:
             complement = self.config['batch_size'] - len(imgs)
-            imgs += self.X[:complement]
-            labels += self.Y[:complement]
-            random.shuffle(imgs)
-            random.shuffle(labels)
-            self.index = self.data_size
+            imgs += self.x[:complement]
+            labels += self.y[:complement]
+            self.index = 0
 
-        self.index = end_idx
+        elif len(imgs) == 0:
+            self.index = self.config['batch_size']
+            imgs = self.x[: self.index]
+            labels = self.y[: self.index]
 
-        if self.index == self.data_size:
-            self.finish_all_data = True
+        else:
+            self.index = end_idx
 
-        self.number_n_batch += 1
+        return imgs[:, :, :, np.newaxis], labels
 
-        return imgs, labels
-
-    def __load_data(self, mode=None):
+    def __load_data(self):
         """
 
         img array value btw 0~1 , so multiply 255
 
         """
 
-        if mode == 'train':
+        if self.mode == 'train':
             imgs = np.load(self.config['data_path'] + 'X.npy')[:self.config['train_size']]
             labels = np.load(self.config['data_path'] + 'Y.npy')[:self.config['train_size']]
 
-        elif mode == 'test':
+        elif self.mode == 'eval':
             imgs = np.load(self.config['data_path'] + 'X.npy')[self.config['train_size']:]
             labels = np.load(self.config['data_path'] + 'Y.npy')[self.config['train_size']:]
 
@@ -91,6 +92,9 @@ class DataReader:
             thresholds = self.__threshold_process(imgs)
             X = self.__find_contour(thresholds)
             return X
+
+        else:
+            return imgs
 
     def __threshold_process(self, imgs):
         thresholds = []

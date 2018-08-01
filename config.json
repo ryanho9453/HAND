@@ -1,6 +1,6 @@
 {
     "general": {
-        "steps": 6000,
+        "steps": 1300,
         "early_stop": false,
         "ealry_stop_loss": 0.005,
         "tensor_log": "saved_models/saved_model/logs/",
@@ -9,7 +9,8 @@
     "data_spec": {
         "img_size": 64,
         "num_channels": 3,
-        "num_class": 10
+        "num_class": 10,
+        "num_channel": 1
     },
     "models": {
         "choose_model": "conv",
@@ -22,8 +23,10 @@
     },
     "processing": {
         "reader": {
-            "batch_size": 1,
-            "train_size": 10,
+            "mode": "train",
+            "process": "None",
+            "batch_size": 100,
+            "train_size": 1600,
             "data_path": "/Users/ryanho/Documents/python/HAND/data/"
         },
         "evaler": {

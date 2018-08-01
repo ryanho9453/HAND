@@ -2,6 +2,7 @@ import tensorflow as tf
 
 """
 output 3 component , 1. train_op 2. loss 3. logits
+
 """
 
 
@@ -12,7 +13,7 @@ class ConvModel:
 
         self.num_class = config['data_spec']['num_class']
 
-        self.conv_neu_num = parameter['conv_neu_num ']
+        self.conv_neu_num = parameter['conv_neu_num']
         self.fc_neu_num = parameter['fc_neu_num']
         self.learn_rate = parameter['learn_rate']
         self.keep_prob = parameter['keep_prob']
@@ -55,13 +56,16 @@ class ConvModel:
         with tf.variable_scope('dense_layer'):
             """
             flatten the last layer to fit fc, 
-            with the number (img_size * img_size * num_channel) 
+            with the number (img_size * img_size * num_channel)
             
-            4096 = 64 * 64
+            dense input shape must be 2-dimension 
+            
+            pool2 output 16 * 16 * 64 (conv2_2 neu_num) 
+            16384 = 16 * 16 * 64
             
             """
 
-            pool2_flat = tf.reshape(pool2, [-1, 4096])
+            pool2_flat = tf.reshape(pool2, [-1, 16384])
 
             dense = tf.layers.dense(
                 inputs=pool2_flat,
@@ -97,15 +101,15 @@ class ConvModel:
             logits.shape = [batch_size, num_class]  dtype : float
 
         softmax_cross_entropy :
-            label_in.shape = [batch_size, num_classes]   dtype : float
+            label_in.shape = [batch_size, num_class]   dtype : float
                 ex : [[0, 0, 1, 0],
                       [1, 0, 0, 0],
                       [0, 1, 0, 0]]
 
         """
         with tf.name_scope('loss'):
-            loss = tf.losses.sparse_softmax_cross_entropy(
-                labels=labels, logits=logits)
+            loss = tf.losses.softmax_cross_entropy(
+                onehot_labels=labels, logits=logits)
         with tf.name_scope('optimizer'):
             optimizer = tf.train.AdamOptimizer(
                 learning_rate=self.learn_rate)
@@ -116,10 +120,21 @@ class ConvModel:
 
         with tf.variable_scope(name):
             """
+            input.dtype must be one of (float16, bfloat16, float32, float64)
+            
             adjust kernel_size if necessary 
             
-            """
+            padding = 'same' ,  p = (f - 1) / 2
+            
+            output_size = [(n + 2p - f) / s] + 1
 
+            n = input_size                --- 
+            p = padding                   --- 1
+            f = filter_size(kernel_size)  --- 3
+            s = strides                   --- 1
+            
+            
+            """
             kernel_size = [3, 3]
             conv = tf.layers.conv2d(
                 inputs=data_in,
@@ -134,9 +149,11 @@ class ConvModel:
 
     def __get_pool_layer(self, data_in, name):
         """
-        output_size = [(n + 2p - f) / s] + 1
+        output_size = [(n - f) / s] + 1
 
-        n = input_size
+        f = filter_size(pool_size)  --- 2
+        s = strides                 --- 2
+
         """
         return tf.layers.max_pooling2d(
             inputs=data_in, pool_size=[2, 2], strides=2, name=name)
